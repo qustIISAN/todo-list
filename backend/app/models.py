@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 
 class TaskCreate(BaseModel):
@@ -55,11 +55,10 @@ class PomodoroState(BaseModel):
         delta = self.ends_at - datetime.utcnow()
         return max(delta, timedelta(0))
 
-    def dict(self, *args, **kwargs):  # type: ignore[override]
-        data = super().dict(*args, **kwargs)
+    @computed_field(return_type=float | None)
+    def remaining_seconds(self) -> float | None:
         remaining = self.remaining
-        data["remaining_seconds"] = remaining.total_seconds() if remaining else None
-        return data
+        return remaining.total_seconds() if remaining else None
 
 
 class PomodoroStartRequest(BaseModel):
