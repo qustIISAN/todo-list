@@ -4,9 +4,22 @@ This project is a minimal demo for a desktop-style widget that combines a Pomodo
 It uses a small FastAPI backend (Python) and a Vite + React front-end (TypeScript). The two services run side-by-side during
 development, and later on they can be bundled into a desktop shell such as Tauri or Electron.
 
-> 💡 **我完全是小白，如何开始？** 下面的步骤会非常详细，只要按顺序执行即可。
+> 💡 **我完全是小白，如何开始？** 现在有一个一键脚本，只要在 Windows 上双击即可完成环境安装并启动前后端。
 
-## 1. 准备工作
+## 0. Windows 一键启动（推荐）
+
+如果你使用的是 Windows，可以直接双击仓库根目录下的 `run_demo.bat`：
+
+1. 第一次运行脚本时会自动创建 Python 虚拟环境、安装后端依赖，并执行 `npm install` 下载前端依赖。
+2. 安装完成后脚本会自动打开两个新的命令提示符窗口：一个运行 FastAPI 后端 (`http://127.0.0.1:8000`)，另一个运行 Vite 前端 (`http://127.0.0.1:5173`)。
+3. 当两个窗口都显示运行成功后，直接在浏览器访问 `http://127.0.0.1:5173/` 即可看到番茄钟 + 待办组件。
+4. 如果想要停止服务，只需在这两个新窗口中分别按下 `Ctrl + C`，或者直接关闭窗口。
+
+> 📌 脚本会检查你的系统是否安装了 **Python 3.10+** 与 **Node.js 18+**。如果缺失，它会在命令行提示你去官网下载。
+
+即使使用脚本，也推荐继续阅读下面的内容，了解项目结构以及在 macOS / Linux 上如何手动运行。
+
+## 1. 准备工作（所有平台）
 
 在开始之前，请先确认你的电脑已经安装了：
 
