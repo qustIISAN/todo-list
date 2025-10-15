@@ -58,10 +58,8 @@ input[type="number"] {
   border: 1px solid #cbd5f5;
   background: #f8fafc;
   font-size: 0.95rem;
-  color: #111827; /* ✅ 新增：深色字体 */
   transition: transform 0.15s ease, box-shadow 0.2s ease;
 }
-
 
 button:hover,
 input[type="text"]:focus,
@@ -114,7 +112,13 @@ button.secondary {
 .settings-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  align-items: end;
+}
+
+.settings-grid button {
+  grid-column: 1 / -1;
+  justify-self: end;
 }
 
 label {
@@ -122,5 +126,11 @@ label {
   color: #475569;
   display: grid;
   gap: 4px;
+}
+
+.helper-text {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
 }
 

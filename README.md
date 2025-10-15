@@ -2,7 +2,7 @@
 
 This project is a minimal demo for a desktop-style widget that combines a Pomodoro timer with a checklist-style todo list.
 It uses a small FastAPI backend (Python) and a Vite + React front-end (TypeScript). The two services run side-by-side during
-development, and later on they can be bundled into a desktop shell such as Tauri or Electron.
+development, and you can now bundle them inside a Python + WebView desktop window to get a more realistic widget experience.
 
 > 💡 **我完全是小白，如何开始？** 现在有一个一键脚本，只要在 Windows 上双击即可完成环境安装并启动前后端。
 
@@ -41,6 +41,9 @@ development, and later on they can be bundled into a desktop shell such as Tauri
 │   │   ├── models.py     # Pydantic 数据模型
 │   │   └── services.py   # 内存版的业务逻辑实现
 │   └── requirements.txt  # 后端依赖列表
+├── desktop/              # 使用 PyWebView 打包的桌面窗口启动器
+│   ├── launch_widget.py  # 启动后端并打开原生窗口
+│   └── requirements.txt  # 桌面模式需要的额外依赖
 ├── frontend/             # Vite + React 前端：展示界面并调用 API
 │   ├── index.html
 │   ├── package.json      # 前端依赖与脚本
@@ -94,12 +97,36 @@ development, and later on they can be bundled into a desktop shell such as Tauri
 4. 终端会显示一个访问地址（默认是 `http://127.0.0.1:5173/` 或 `http://localhost:5173/`）。
 5. 在浏览器中打开这个地址，就能看到番茄钟 + 待办的小组件界面。前端会自动请求刚才启动的 FastAPI 后端。
 
+### ✅ 如何自定义番茄钟时间？
+
+界面中的 **Settings** 区块允许你直接输入专注、短休息、长休息的分钟数。填写完毕后点击 **Save settings**，后端会立即更新配置。
+如果此时番茄钟正在运行，它会立刻按照新的设置重新计算剩余时间。
+
 ## 5. 停止服务
 
 - 想要停止后端或前端，只需回到对应的终端窗口，按下 `Ctrl + C`。
 - 关闭虚拟环境可以在终端输入 `deactivate`。
 
-## 6. 常见问题排查
+## 6. 将 Web 应用嵌入桌面窗口
+
+想要更酷的“桌面小组件”体验，可以把前后端打包进一个原生窗口。
+
+1. 在 `frontend` 目录执行一次构建，生成静态资源：
+   ```bash
+   cd frontend
+   npm run build
+   ```
+2. 安装桌面模式所需的 Python 依赖（在项目根目录执行）：
+   ```bash
+   pip install -r desktop/requirements.txt
+   ```
+3. 运行启动脚本：
+   ```bash
+   python desktop/launch_widget.py
+   ```
+   该脚本会自动开启 FastAPI 后端，并在一个 PyWebView 窗口中加载刚才构建好的前端页面；关闭窗口时会自动停止后端。
+
+## 7. 常见问题排查
 
 | 问题 | 可能原因 | 解决方案 |
 | --- | --- | --- |
@@ -108,7 +135,7 @@ development, and later on they can be bundled into a desktop shell such as Tauri
 | `npm run dev` 报错 | Node.js 版本过低或依赖安装失败 | 确保 Node.js ≥ 18；运行 `npm install` 重新安装依赖。 |
 | 端口被占用 | 其他程序占用了 8000/5173 端口 | 关闭其他程序，或修改运行命令使用其他端口。 |
 
-## 7. 下一步可以做什么？
+## 8. 下一步可以做什么？
 
 - 将目前的 Web 前端和后端打包到桌面壳（Tauri / Electron）中，做出真正的桌面组件。
 - 把目前的内存数据存储换成 SQLite 等持久化方案，加入用户登录、统计等高级功能。

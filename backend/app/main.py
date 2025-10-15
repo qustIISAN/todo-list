@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.status import HTTP_404_NOT_FOUND
 
 from .models import (
@@ -32,6 +35,16 @@ app.add_middleware(
 
 task_service = TaskService()
 pomodoro_service = PomodoroService()
+
+
+DIST_DIR = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+
+if DIST_DIR.exists():
+    app.mount("/app", StaticFiles(directory=DIST_DIR, html=True), name="frontend")
+
+    @app.get("/", include_in_schema=False)
+    async def frontend_root() -> RedirectResponse:
+        return RedirectResponse(url="/app", status_code=307)
 
 
 @app.get("/tasks", response_model=TasksResponse)

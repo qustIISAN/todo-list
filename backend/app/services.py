@@ -89,5 +89,10 @@ class PomodoroService:
 
     def update_settings(self, settings: PomodoroSettings) -> PomodoroResponse:
         self._state.settings = settings
+        if self._state.is_running and self._state.started_at:
+            phase = self._state.current_phase
+            if phase in self.PHASE_DURATIONS:
+                duration = self.PHASE_DURATIONS[phase](settings)
+                self._state.ends_at = self._state.started_at + duration
         return PomodoroResponse(state=self._state)
 

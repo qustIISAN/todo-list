@@ -6,6 +6,12 @@ type Task = {
   completed: boolean;
 };
 
+type PomodoroSettings = {
+  work_minutes: number;
+  short_break_minutes: number;
+  long_break_minutes: number;
+};
+
 type PomodoroState = {
   state: {
     is_running: boolean;
@@ -14,15 +20,19 @@ type PomodoroState = {
     ends_at: string | null;
     completed_cycles: number;
     remaining_seconds: number | null;
-    settings: {
-      work_minutes: number;
-      short_break_minutes: number;
-      long_break_minutes: number;
-    };
+    settings: PomodoroSettings;
   };
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API_BASE_URL = (() => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined" && window.location.port !== "5173") {
+    return window.location.origin.replace(/\/$/, "");
+  }
+  return "http://localhost:8000";
+})();
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -41,6 +51,7 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState("");
   const [pomodoro, setPomodoro] = useState<PomodoroState | null>(null);
+  const [settingsDraft, setSettingsDraft] = useState<PomodoroSettings | null>(null);
 
   const loadTasks = useCallback(async () => {
     const data = await api<{ tasks: Task[] }>("/tasks");
@@ -56,6 +67,12 @@ export default function App() {
     loadTasks();
     loadPomodoro();
   }, [loadTasks, loadPomodoro]);
+
+  useEffect(() => {
+    if (pomodoro) {
+      setSettingsDraft(pomodoro.state.settings);
+    }
+  }, [pomodoro]);
 
   const handleAddTask = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -96,17 +113,25 @@ export default function App() {
     setPomodoro(response);
   };
 
-  const updateSettings = async (field: string, value: number) => {
-    if (!pomodoro) {
+  const handleSettingsChange = (field: keyof PomodoroSettings, value: number) => {
+    setSettingsDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            [field]: value,
+          }
+        : prev,
+    );
+  };
+
+  const applySettings = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!settingsDraft) {
       return;
     }
-    const settings = {
-      ...pomodoro.state.settings,
-      [field]: value,
-    };
     const response = await api<PomodoroState>("/pomodoro/settings", {
       method: "POST",
-      body: JSON.stringify(settings),
+      body: JSON.stringify(settingsDraft),
     });
     setPomodoro(response);
   };
@@ -143,8 +168,8 @@ export default function App() {
 
       <section className="section">
         <strong>Settings</strong>
-        <div className="settings-grid">
-          {pomodoro && (
+        <form className="settings-grid" onSubmit={applySettings}>
+          {settingsDraft && (
             <>
               <label>
                 Work (min)
@@ -152,8 +177,8 @@ export default function App() {
                   type="number"
                   min={1}
                   max={120}
-                  value={pomodoro.state.settings.work_minutes}
-                  onChange={(event) => updateSettings("work_minutes", Number(event.target.value))}
+                  value={settingsDraft.work_minutes}
+                  onChange={(event) => handleSettingsChange("work_minutes", Number(event.target.value))}
                 />
               </label>
               <label>
@@ -162,9 +187,9 @@ export default function App() {
                   type="number"
                   min={1}
                   max={60}
-                  value={pomodoro.state.settings.short_break_minutes}
+                  value={settingsDraft.short_break_minutes}
                   onChange={(event) =>
-                    updateSettings("short_break_minutes", Number(event.target.value))
+                    handleSettingsChange("short_break_minutes", Number(event.target.value))
                   }
                 />
               </label>
@@ -174,13 +199,22 @@ export default function App() {
                   type="number"
                   min={1}
                   max={60}
-                  value={pomodoro.state.settings.long_break_minutes}
-                  onChange={(event) => updateSettings("long_break_minutes", Number(event.target.value))}
+                  value={settingsDraft.long_break_minutes}
+                  onChange={(event) =>
+                    handleSettingsChange("long_break_minutes", Number(event.target.value))
+                  }
                 />
               </label>
+              <button className="primary" type="submit">
+                Save settings
+              </button>
             </>
           )}
-        </div>
+        </form>
+        <p className="helper-text">
+          Adjust the timers to your preference, then click <em>Save settings</em>. Changes instantly
+          update the current session.
+        </p>
       </section>
 
       <section className="section">
